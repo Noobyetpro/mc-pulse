@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["public", "mc_pulse"]
+}
+
+model Server {
+  id        String            @id @default(cuid())
+  host      String
+  port      Int
+  name      String?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  snapshots StatusSnapshot[]
+
+  @@unique([host, port])
+  @@schema("mc_pulse")
+}
+
+model StatusSnapshot {
+  id           String   @id @default(cuid())
+  server       Server   @relation(fields: [serverId], references: [id])
+  serverId     String
+  online       Boolean
+  latencyMs    Int?
+  playersOnline Int?
+  playersMax    Int?
+  version      String?
+  motd         String?
+  createdAt    DateTime @default(now())
+
+  @@schema("mc_pulse")
+}
+
+model ApiKey {
+  id        String    @id @default(cuid())
+  key       String    @unique
+  label     String?
+  revoked   Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  webhooks  Webhook[]
+
+  @@schema("mc_pulse")
+}
+
+model Webhook {
+  id        String   @id @default(cuid())
+  url       String
+  description String?
+  apiKey    ApiKey  @relation(fields: [apiKeyId], references: [id])
+  apiKeyId  String
+  createdAt DateTime @default(now())
+
+  @@schema("mc_pulse")
+}
