@@ -101,4 +101,3 @@ curl -X POST "http://localhost:${PORT:-3000}/api/status/notify?host=arch.mc&type
 ## Notes
 - Redis is used for caching Java status only; Bedrock requests skip cache.
 - Prisma client is generated from `prisma/schema.prisma`; regenerate after schema changes.
-- Do not commit `.env` or API key
