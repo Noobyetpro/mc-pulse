@@ -1,103 +1,37 @@
 # mc-pulse
 
-Lightweight Minecraft server status API with webhook notifications (Java and Bedrock).
+Status + webhook API for Minecraft servers (Java + Bedrock).
 
-## Features
-- Query server status (Java/Bedrock), caches Java responses in Redis.
-- Upserts servers and stores snapshots in Postgres via Prisma.
-- API key–protected webhooks: register endpoints and push status payloads on demand.
+- Guide: https://mc-pulse.vercel.app
+- Hosted API base: https://mc-pulse.vercel.app/api
 
-## Prereqs
-- Node.js 18+ (ESM)
-- Postgres (DATABASE_URL)
-- Redis (REDIS_URL)
+## How it works
+- Incoming requests hit Express 5 routes in `src/`, all TypeScript/ESM.
+- Status lookup:
+  - Java queries go through `minecraft-server-util`, then responses are cached in Redis for `CACHE_TTL_SECONDS`. Cache key is derived from host/port/type to keep entries isolated.
+  - Bedrock queries skip cache and fetch live data each time.
+- API keys:
+  - `POST /api/api-keys` issues a key stored in Postgres (via Prisma) with optional labels for identification.
+  - Keys are required via `x-api-key` header for webhook-related endpoints and for broadcast notifications.
+- Webhooks:
+  - Clients register webhook URLs per API key (`POST /api/webhooks`); each entry records URL and optional description.
+  - `POST /api/status/notify` fetches server status (honoring cache rules) and POSTs the JSON payload to every webhook tied to the provided key.
+- Persistence:
+  - Prisma models live in `prisma/schema.prisma`; servers and snapshots are recorded for auditing/history alongside API keys and webhooks.
+  - `prisma.config.ts` wires the datasource and client generation; `npm run build` emits compiled JS to `dist/`.
+- Validation and safety:
+  - Request parameters are validated with `zod` before queries run.
+  - Health probe at `/health` returns `{ ok: true }` to help load balancers and monitors.
+- Dependencies and environment:
+  - Node 18+, Postgres URL (`DATABASE_URL`), Redis URL (`REDIS_URL`), optional defaults for Java host/port (`DEFAULT_SERVER_HOST`, `DEFAULT_SERVER_PORT`), port binding (`PORT`), and cache TTL (`CACHE_TTL_SECONDS`).
+  - Scripts: `npm run dev` (watch), `npm run build` (tsc + Prisma client), `npm start` (run built output).
 
-## Environment
-Copy `.env.example` to `.env` and set:
-- `PORT` (default 3000)
-- `DATABASE_URL`
-- `REDIS_URL`
-- `DEFAULT_SERVER_HOST` (fallback Java host)
-- `DEFAULT_SERVER_PORT` (fallback Java port, e.g., 25565)
-- `CACHE_TTL_SECONDS` (TTL for cached Java status)
+## API at a glance
+- Base path: `/api`
+- Status: `GET /api/status` (query `host`, `port`, `type=java|bedrock`)
+- Notify webhooks: `POST /api/status/notify` (requires `x-api-key`)
+- API keys: `POST /api/api-keys`, `GET /api/api-keys`
+- Webhooks: `POST /api/webhooks`, `GET /api/webhooks`, `DELETE /api/webhooks/:id` (all require `x-api-key`)
+- Health: `GET /health` -> `{ ok: true }`
 
-## Install
-```bash
-npm install
-npx prisma generate
-```
-
-## Database
-Apply migrations locally:
-```bash
-npx prisma migrate dev
-```
-Production deploy:
-```bash
-npx prisma migrate deploy
-```
-
-## Run
-Dev (watch):
-```bash
-npm run dev
-```
-Build:
-```bash
-npm run build
-```
-Start built output:
-```bash
-npm start
-```
-
-## API
-Base path: `/api`
-
-- `GET /api/status`  
-  Query params: `host?`, `port?`, `type?` (`java|bedrock`, default `java`).
-- `GET /api/status/:type`  
-  Path param `type` (`java|bedrock`), same query params for host/port.
-- `POST /api/status/notify`  
-  Header: `x-api-key`. Query params as above. Fetches status and POSTs JSON to all webhooks for that key.
-
-API keys:
-- `POST /api/api-keys` (body `{ "label"?: string }`) → create key.
-- `GET /api/api-keys` → list keys.
-
-Webhooks (API key required via `x-api-key`):
-- `POST /api/webhooks` (body `{ "url": string, "description"?: string }`) → create.
-- `GET /api/webhooks` → list.
-- `DELETE /api/webhooks/:id` → delete.
-
-Health:
-- `GET /health` → `{ ok: true }`
-
-## Quick test commands
-```bash
-# health
-curl http://localhost:${PORT:-3000}/health
-
-# create API key
-curl -X POST http://localhost:${PORT:-3000}/api/api-keys \
-  -H "Content-Type: application/json" -d '{"label":"local"}'
-
-# status (Java)
-curl "http://localhost:${PORT:-3000}/api/status/java?host=arch.mc"
-
-# status (Bedrock)
-curl "http://localhost:${PORT:-3000}/api/status/bedrock?host=sg.hivebedrock.network"
-
-# create webhook (replace <API_KEY> and <URL>)
-curl -X POST http://localhost:${PORT:-3000}/api/webhooks \
-  -H "Content-Type: application/json" -H "x-api-key: <API_KEY>" \
-  -d '{"url":"<URL>","description":"test"}'
-
-# notify webhooks
-curl -X POST "http://localhost:${PORT:-3000}/api/status/notify?host=arch.mc&type=java" \
-  -H "x-api-key: <API_KEY>"
-```
-
-## Notes
-- Redis is used for caching Java status only; Bedrock requests skip cache.
-- Prisma client is generated from `prisma/schema.prisma`; regenerate after schema changes.
+For end-to-end setup, hosting options, and request examples, see the guide link above. For live endpoints, use the hosted API base link.
