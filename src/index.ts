@@ -1,24 +1,7 @@
-import cors from "cors";
-import express from "express";
+import { app } from "./app.js";
 import { config } from "./config.js";
-import { statusRouter } from "./routes/status.js";
-import { apiKeysRouter } from "./routes/apiKeys.js";
-import { webhooksRouter } from "./routes/webhooks.js";
 import { disconnectCache, ensureRedis } from "./cache.js";
 import { disconnectDatabase } from "./db.js";
-
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-app.get("/health", (_req, res) => {
-  res.json({ ok: true });
-});
-
-app.use("/api", statusRouter);
-app.use("/api/api-keys", apiKeysRouter);
-app.use("/api/webhooks", webhooksRouter);
 
 async function start() {
   try {
