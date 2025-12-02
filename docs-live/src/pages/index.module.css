@@ -1,0 +1,198 @@
+/**
+ * CSS files with the .module.css suffix will be treated as CSS modules
+ * and scoped locally.
+ */
+
+.heroBanner {
+  padding: 4rem 0 3rem;
+  background: radial-gradient(120% 120% at 20% 10%, rgba(255, 143, 92, 0.35), transparent),
+    radial-gradient(140% 120% at 80% 0%, rgba(88, 109, 255, 0.25), transparent),
+    linear-gradient(135deg, #0b1021, #11172f);
+  color: #eef3ff;
+}
+
+.heroContent {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  align-items: center;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tagline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #c2ceff;
+}
+
+.title {
+  font-size: clamp(2.2rem, 4vw, 3rem);
+  margin: 0;
+}
+
+.lead {
+  font-size: 1.05rem;
+  color: #dce4ff;
+  max-width: 640px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.heroNote {
+  margin-top: 0.5rem;
+  color: #c2ceff;
+  font-size: 0.95rem;
+}
+
+.heroNote a {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.ghostButton {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: #eef3ff;
+}
+
+.ghostButton:hover {
+  border-color: #eef3ff;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.chips span {
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e4ecff;
+  font-size: 0.9rem;
+}
+
+.heroPanel {
+  background: #0f1529;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.panelHeading {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a8b7ff;
+  font-size: 0.85rem;
+}
+
+.panelMeta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  color: #dce4ff;
+}
+
+.metaLabel {
+  display: block;
+  color: #9fb4ff;
+  font-size: 0.85rem;
+}
+
+.main {
+  background: radial-gradient(120% 120% at 10% 20%, rgba(255, 143, 92, 0.06), transparent),
+    radial-gradient(100% 100% at 80% 0%, rgba(88, 109, 255, 0.05), transparent);
+  color: #e8ecff;
+}
+
+.docsGrid {
+  padding: 3rem 0;
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.tileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.tile {
+  text-decoration: none;
+  padding: 1.25rem;
+  border-radius: 14px;
+  border: 1px solid var(--ifm-color-primary);
+  background: #0f1221;
+  color: #f6f8ff;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 180px;
+}
+
+.tile:hover {
+  transform: translateY(-4px);
+  border-color: #ff8f5c;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+
+.tileLabel {
+  text-transform: uppercase;
+  color: #9fb4ff;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.3rem;
+}
+
+.tileTitle {
+  margin: 0;
+}
+
+.tileDescription {
+  margin: 0.25rem 0 0;
+  color: #dfe7ff;
+}
+
+.tileCta {
+  margin-top: 1rem;
+  font-weight: 700;
+  color: #ffb18d;
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 2.5rem 0;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
