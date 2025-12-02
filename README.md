@@ -2,8 +2,8 @@
 
 Status + webhook API for Minecraft servers (Java + Bedrock).
 
-- Guide: https://mc-pulse.vercel.app
-- Hosted API base: https://mc-pulse.vercel.app/api
+- Guide: https://mcpulse.vercel.app
+- Hosted API base: https://mc-pulse.vercel.app/
 
 ## How it works
 - Incoming requests hit Express 5 routes in `src/`, all TypeScript/ESM.
