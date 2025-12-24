@@ -1,11 +1,11 @@
 {
   "bunVersion": "1.3.5",
   "functions": {
-    "src/index.ts": {
+    "api/**/*.ts": {
       "runtime": "bun@1.3.5"
     }
   },
   "routes": [
-    { "src": "/(.*)", "dest": "src/index.ts" }
+    { "src": "/(.*)", "dest": "/api/index" }
   ]
 }
