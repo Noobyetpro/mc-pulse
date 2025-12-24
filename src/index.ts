@@ -20,34 +20,27 @@ app.group("/api", (app) =>
     .group("/webhooks", (group) => group.use(webhooksRoutes)),
 );
 
-const isVercel = Boolean(process.env.VERCEL);
-
-if (isVercel) {
-  // Serverless/WebStandard adapter does not support listen.
-  void ensureRedis().catch(() => {
-    // continue without cache in serverless
-  });
-} else {
-  async function start() {
-    try {
-      await ensureRedis();
-    } catch {
-      // continue startup even if redis is unavailable
-    }
-
-    const server = app.listen(config.port);
-    console.log(`mc-pulse API listening on port ${config.port}`);
-
-    async function shutdown() {
-      server.stop();
-      await Promise.allSettled([disconnectCache(), disconnectDatabase()]);
-      process.exit(0);
-    }
-
-    process.on("SIGINT", shutdown);
-    process.on("SIGTERM", shutdown);
+async function start() {
+  try {
+    await ensureRedis();
+  } catch {
+    // continue startup even if redis is unavailable
   }
 
+  const server = app.listen(config.port);
+  console.log(`mc-pulse API listening on port ${config.port}`);
+
+  async function shutdown() {
+    server.stop();
+    await Promise.allSettled([disconnectCache(), disconnectDatabase()]);
+    process.exit(0);
+  }
+
+  process.on("SIGINT", shutdown);
+  process.on("SIGTERM", shutdown);
+}
+
+if (import.meta.main) {
   start().catch((err) => {
     console.error("Failed to start server", err);
     process.exit(1);
