@@ -20,7 +20,7 @@ export const apiKeyPlugin = new Elysia({ name: "apiKey" })
     const key = extractKey(request.headers);
     if (!key) {
       set.status = 401;
-      return { apiKeyError: { error: "API key required" } };
+      return { apiKey: undefined, apiKeyError: { error: "API key required" } };
     }
 
     try {
@@ -29,13 +29,13 @@ export const apiKeyPlugin = new Elysia({ name: "apiKey" })
       });
       if (!record) {
         set.status = 401;
-        return { apiKeyError: { error: "Invalid API key" } };
+        return { apiKey: undefined, apiKeyError: { error: "Invalid API key" } };
       }
-      return { apiKey: record as ApiKey };
+      return { apiKey: record as ApiKey, apiKeyError: undefined };
     } catch (err) {
       console.error("API key lookup failed", err);
       set.status = 500;
-      return { apiKeyError: { error: "Auth failed" } };
+      return { apiKey: undefined, apiKeyError: { error: "Auth failed" } };
     }
   })
   .onBeforeHandle(({ apiKeyError }) => {
