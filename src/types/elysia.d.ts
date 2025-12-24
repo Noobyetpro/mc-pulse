@@ -1,4 +1,10 @@
-import type { ApiKey } from "../generated/prisma/client.js";
+type ApiKey = {
+  id: string;
+  key: string;
+  label: string | null;
+  revoked: boolean;
+  createdAt: Date;
+};
 
 declare module "elysia" {
   interface Context {
@@ -6,3 +12,5 @@ declare module "elysia" {
     apiKeyError?: { error: string };
   }
 }
+
+export {};
