@@ -29,7 +29,7 @@ async function handleNotify({
 }: {
   query: Record<string, unknown>;
   apiKey?: { id: string };
-  set: { status?: number };
+  set: { status?: number | string };
 }) {
   const parsed = querySchema.safeParse(query);
 
@@ -89,6 +89,16 @@ async function handleNotify({
   }
 }
 
+const notifyRoutes = new Elysia({ name: "notify" })
+  .use(apiKeyPlugin)
+  .post("/notify", ({ query, apiKey, set }) =>
+    handleNotify({ query, apiKey, set }),
+  )
+  // Legacy/alias path to support /api/status/notify
+  .post("/status/notify", ({ query, apiKey, set }) =>
+    handleNotify({ query, apiKey, set }),
+  );
+
 export const statusRoutes = new Elysia({ name: "status" })
   .get("/status", async ({ query, set }) => {
     const parsed = querySchema.safeParse(query);
@@ -143,14 +153,4 @@ export const statusRoutes = new Elysia({ name: "status" })
       return { error: "Failed to fetch server status" };
     }
   })
-  .group("", (app) =>
-    app
-      .use(apiKeyPlugin)
-      .post("/notify", ({ query, apiKey, set }) =>
-        handleNotify({ query, apiKey, set }),
-      )
-      // Legacy/alias path to support /api/status/notify
-      .post("/status/notify", ({ query, apiKey, set }) =>
-        handleNotify({ query, apiKey, set }),
-      ),
-  );
+  .use(notifyRoutes);
