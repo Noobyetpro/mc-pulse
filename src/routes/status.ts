@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, type StatusMap } from "elysia";
 import { z } from "zod";
 import { fetchServerStatus } from "../services/statusService.js";
 import { apiKeyPlugin } from "../middleware/requireApiKey.js";
@@ -27,9 +27,9 @@ async function handleNotify({
   apiKey,
   set,
 }: {
-  query: Record<string, unknown>;
-  apiKey?: { id: string };
-  set: { status?: number | string };
+  query: Record<string, string>;
+  apiKey: { id: string } | undefined;
+  set: { status?: number | keyof StatusMap };
 }) {
   const parsed = querySchema.safeParse(query);
 
