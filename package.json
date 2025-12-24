@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "predev": "bunx prisma generate",
-    "dev": "bun --watch src/server.ts",
+    "dev": "bun --watch src/index.ts",
     "build": "bunx prisma generate && tsc",
-    "start": "bun dist/server.js",
+    "start": "bun dist/index.js",
     "prisma:migrate": "bunx prisma migrate dev --name init",
     "prisma:generate": "bunx prisma generate"
   },
