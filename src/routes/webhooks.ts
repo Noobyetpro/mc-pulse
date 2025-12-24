@@ -1,7 +1,7 @@
-import { Router } from "express";
+import { Elysia } from "elysia";
 import { z } from "zod";
 import { prisma } from "../db.js";
-import { requireApiKey } from "../middleware/requireApiKey.js";
+import { apiKeyPlugin } from "../middleware/requireApiKey.js";
 
 // cspell:ignore treeify
 
@@ -10,27 +10,30 @@ const createSchema = z.object({
   description: z.string().trim().max(255).optional(),
 });
 
-export const webhooksRouter = Router();
+export const webhooksRoutes = new Elysia({ name: "webhooks" }).use(apiKeyPlugin);
 
-webhooksRouter.use(requireApiKey);
-
-webhooksRouter.get("/", async (req, res) => {
-  const apiKey = req.apiKey;
+webhooksRoutes.get("/", async ({ apiKey, set }) => {
+  if (!apiKey) {
+    set.status = 401;
+    return { error: "API key required" };
+  }
   const hooks = await prisma.webhook.findMany({
     where: { apiKeyId: apiKey.id },
     orderBy: { createdAt: "desc" },
     select: { id: true, url: true, description: true, createdAt: true },
   });
-  res.json(hooks);
+  return hooks;
 });
 
-webhooksRouter.post("/", async (req, res) => {
-  const apiKey = req.apiKey;
-  const parsed = createSchema.safeParse(req.body ?? {});
+webhooksRoutes.post("/", async ({ apiKey, body, set }) => {
+  if (!apiKey) {
+    set.status = 401;
+    return { error: "API key required" };
+  }
+  const parsed = createSchema.safeParse(body ?? {});
   if (!parsed.success) {
-    return res
-      .status(400)
-      .json({ error: "Invalid body", details: z.treeifyError(parsed.error) });
+    set.status = 400;
+    return { error: "Invalid body", details: z.treeifyError(parsed.error) };
   }
 
   try {
@@ -42,16 +45,21 @@ webhooksRouter.post("/", async (req, res) => {
       },
       select: { id: true, url: true, description: true, createdAt: true },
     });
-    res.status(201).json(created);
+    set.status = 201;
+    return created;
   } catch (err) {
     console.error("Failed to create webhook", err);
-    res.status(500).json({ error: "Failed to create webhook, u have skill issue" });
+    set.status = 500;
+    return { error: "Failed to create webhook, u have skill issue" };
   }
 });
 
-webhooksRouter.delete("/:id", async (req, res) => {
-  const apiKey = req.apiKey;
-  const id = req.params.id;
+webhooksRoutes.delete("/:id", async ({ apiKey, params, set }) => {
+  if (!apiKey) {
+    set.status = 401;
+    return { error: "API key required" };
+  }
+  const id = params.id;
 
   const hook = await prisma.webhook.findUnique({
     where: { id },
@@ -59,14 +67,17 @@ webhooksRouter.delete("/:id", async (req, res) => {
   });
 
   if (!hook || hook.apiKeyId !== apiKey.id) {
-    return res.status(404).json({ error: "Webhook not found" });
+    set.status = 404;
+    return { error: "Webhook not found" };
   }
 
   try {
     await prisma.webhook.delete({ where: { id } });
-    res.status(204).send();
+    set.status = 204;
+    return;
   } catch (err) {
     console.error("Failed to delete webhook", err);
-    res.status(500).json({ error: "Failed to delete webhook" });
+    set.status = 500;
+    return { error: "Failed to delete webhook" };
   }
 });

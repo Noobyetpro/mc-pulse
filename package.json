@@ -5,31 +5,29 @@
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "build": "prisma generate && tsc",
-    "start": "node dist/index.js",
-    "prisma:migrate": "prisma migrate dev --name init",
-    "prisma:generate": "prisma generate"
+    "predev": "bunx prisma generate",
+    "dev": "bun --watch src/index.ts",
+    "build": "bunx prisma generate && tsc",
+    "start": "bun dist/index.js",
+    "prisma:migrate": "bunx prisma migrate dev --name init",
+    "prisma:generate": "bunx prisma generate"
   },
   "dependencies": {
+    "@elysiajs/cors": "^1.4.0",
     "@prisma/adapter-pg": "^7.0.0",
     "@prisma/client": "^7.0.0",
-    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "express": "^5.1.0",
+    "elysia": "^1.4.4",
     "ioredis": "^5.8.2",
     "minecraft-server-util": "^5.4.4",
     "pg": "^8.16.3",
     "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.5",
+    "bun-types": "^1.2.22",
     "@types/node": "^24.10.1",
     "@types/pg": "^8.15.6",
     "prisma": "^7.0.0",
-    "ts-node-dev": "^2.0.0",
-    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
 }

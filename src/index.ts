@@ -1,24 +1,24 @@
-import cors from "cors";
-import express from "express";
+import { cors } from "@elysiajs/cors";
+import { Elysia } from "elysia";
 import { config } from "./config.js";
-import { statusRouter } from "./routes/status.js";
-import { apiKeysRouter } from "./routes/apiKeys.js";
-import { webhooksRouter } from "./routes/webhooks.js";
+import { statusRoutes } from "./routes/status.js";
+import { apiKeysRoutes } from "./routes/apiKeys.js";
+import { webhooksRoutes } from "./routes/webhooks.js";
 import { disconnectCache, ensureRedis } from "./cache.js";
 import { disconnectDatabase } from "./db.js";
 
-const app = express();
+const app = new Elysia();
 
 app.use(cors());
-app.use(express.json());
 
-app.get("/health", (_req, res) => {
-  res.json({ ok: true });
-});
+app.get("/health", () => ({ ok: true }));
 
-app.use("/api", statusRouter);
-app.use("/api/api-keys", apiKeysRouter);
-app.use("/api/webhooks", webhooksRouter);
+app.group("/api", (app) =>
+  app
+    .use(statusRoutes)
+    .group("/api-keys", (group) => group.use(apiKeysRoutes))
+    .group("/webhooks", (group) => group.use(webhooksRoutes)),
+);
 
 async function start() {
   try {
@@ -27,12 +27,11 @@ async function start() {
     // continue startup even if redis is unavailable
   }
 
-  const server = app.listen(config.port, () => {
-    console.log(`mc-pulse API listening on port ${config.port}`);
-  });
+  const server = app.listen(config.port);
+  console.log(`mc-pulse API listening on port ${config.port}`);
 
   async function shutdown() {
-    server.close();
+    server.stop();
     await Promise.allSettled([disconnectCache(), disconnectDatabase()]);
     process.exit(0);
   }

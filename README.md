@@ -6,7 +6,7 @@ Status + webhook API for Minecraft servers (Java + Bedrock).
 - Hosted API base: https://mc-pulse.vercel.app/
 
 ## How it works
-- Incoming requests hit Express 5 routes in `src/`, all TypeScript/ESM.
+- Incoming requests hit Elysia routes in `src/`, all TypeScript/ESM.
 - Status lookup:
   - Java queries go through `minecraft-server-util`, then responses are cached in Redis for `CACHE_TTL_SECONDS`. Cache key is derived from host/port/type to keep entries isolated.
   - Bedrock queries skip cache and fetch live data each time.
@@ -18,13 +18,13 @@ Status + webhook API for Minecraft servers (Java + Bedrock).
   - `POST /api/status/notify` fetches server status (honoring cache rules) and POSTs the JSON payload to every webhook tied to the provided key.
 - Persistence:
   - Prisma models live in `prisma/schema.prisma`; servers and snapshots are recorded for auditing/history alongside API keys and webhooks.
-  - `prisma.config.ts` wires the datasource and client generation; `npm run build` emits compiled JS to `dist/`.
+  - `prisma.config.ts` wires the datasource and client generation; `bun run build` emits compiled JS to `dist/`.
 - Validation and safety:
   - Request parameters are validated with `zod` before queries run.
   - Health probe at `/health` returns `{ ok: true }` to help load balancers and monitors.
 - Dependencies and environment:
-  - Node 18+, Postgres URL (`DATABASE_URL`), Redis URL (`REDIS_URL`), optional defaults for Java host/port (`DEFAULT_SERVER_HOST`, `DEFAULT_SERVER_PORT`), port binding (`PORT`), and cache TTL (`CACHE_TTL_SECONDS`).
-  - Scripts: `npm run dev` (watch), `npm run build` (tsc + Prisma client), `npm start` (run built output).
+  - Bun 1.1+, Postgres URL (`DATABASE_URL`), Redis URL (`REDIS_URL`), optional defaults for Java host/port (`DEFAULT_SERVER_HOST`, `DEFAULT_SERVER_PORT`), port binding (`PORT`), and cache TTL (`CACHE_TTL_SECONDS`).
+  - Scripts: `bun run dev` (watch), `bun run build` (tsc + Prisma client), `bun start` (run built output).
 
 ## API at a glance
 - Base path: `/api`

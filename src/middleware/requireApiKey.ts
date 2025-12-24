@@ -1,12 +1,12 @@
-import type { NextFunction, Request, Response } from "express";
+import { Elysia } from "elysia";
 import { prisma } from "../db.js";
 import type { ApiKey } from "../generated/prisma/client.js";
 
-function extractKey(req: Request): string | null {
-  const headerKey = req.header("x-api-key");
+function extractKey(headers: Headers): string | null {
+  const headerKey = headers.get("x-api-key");
   if (headerKey) return headerKey.trim();
 
-  const auth = req.header("authorization");
+  const auth = headers.get("authorization");
   if (!auth) return null;
 
   const [scheme, value] = auth.split(" ");
@@ -15,27 +15,29 @@ function extractKey(req: Request): string | null {
   return null;
 }
 
-export async function requireApiKey(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  const key = extractKey(req);
-  if (!key) {
-    return res.status(401).json({ error: "API key required" });
-  }
-
-  try {
-    const record = await prisma.apiKey.findFirst({
-      where: { key, revoked: false },
-    });
-    if (!record) {
-      return res.status(401).json({ error: "Invalid API key" });
+export const apiKeyPlugin = new Elysia({ name: "apiKey" })
+  .derive(async ({ request, set }) => {
+    const key = extractKey(request.headers);
+    if (!key) {
+      set.status = 401;
+      return { apiKeyError: { error: "API key required" } };
     }
-    req.apiKey = record;
-    next();
-  } catch (err) {
-    console.error("API key lookup failed", err);
-    res.status(500).json({ error: "Auth failed" });
-  }
-}
+
+    try {
+      const record = await prisma.apiKey.findFirst({
+        where: { key, revoked: false },
+      });
+      if (!record) {
+        set.status = 401;
+        return { apiKeyError: { error: "Invalid API key" } };
+      }
+      return { apiKey: record as ApiKey };
+    } catch (err) {
+      console.error("API key lookup failed", err);
+      set.status = 500;
+      return { apiKeyError: { error: "Auth failed" } };
+    }
+  })
+  .onBeforeHandle(({ apiKeyError }) => {
+    if (apiKeyError) return apiKeyError;
+  });

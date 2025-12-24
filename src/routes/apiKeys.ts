@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { Router } from "express";
+import { Elysia } from "elysia";
 import { z } from "zod";
 import { prisma } from "../db.js";
 
@@ -7,15 +7,14 @@ const createSchema = z.object({
   label: z.string().trim().min(1).max(120).optional(),
 });
 
-export const apiKeysRouter = Router();
+export const apiKeysRoutes = new Elysia({ name: "apiKeys" });
 
 // cspell:ignore treeify
-apiKeysRouter.post("/", async (req, res) => {
-  const parsed = createSchema.safeParse(req.body ?? {});
+apiKeysRoutes.post("/", async ({ body, set }) => {
+  const parsed = createSchema.safeParse(body ?? {});
   if (!parsed.success) {
-    return res
-      .status(400)
-      .json({ error: "Invalid body", details: z.treeifyError(parsed.error) });
+    set.status = 400;
+    return { error: "Invalid body", details: z.treeifyError(parsed.error) };
   }
 
   const key = `key_${randomBytes(24).toString("hex")}`;
@@ -28,9 +27,11 @@ apiKeysRouter.post("/", async (req, res) => {
       },
       select: { id: true, key: true, label: true, createdAt: true },
     });
-    res.status(201).json(created);
+    set.status = 201;
+    return created;
   } catch (err) {
     console.error("Failed to create API key", err);
-    res.status(500).json({ error: "Failed to create API key" });
+    set.status = 500;
+    return { error: "Failed to create API key" };
   }
 });

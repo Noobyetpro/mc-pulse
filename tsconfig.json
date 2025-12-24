@@ -7,7 +7,7 @@
     // Environment Settings
     "module": "esnext",
     "target": "es2022",
-    "types": ["node"],
+    "types": ["bun-types", "node"],
     "lib": ["es2022"],
 
     // Outputs
