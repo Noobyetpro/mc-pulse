@@ -11,6 +11,11 @@ const app = new Elysia();
 
 app.use(cors());
 
+app.get("/favicon.ico", ({ set }) => {
+  set.status = 204;
+  return;
+});
+
 app.get("/health", () => ({ ok: true }));
 
 app.group("/api", (app) =>
