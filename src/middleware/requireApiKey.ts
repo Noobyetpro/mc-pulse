@@ -15,29 +15,34 @@ function extractKey(headers: Headers): string | null {
   return null;
 }
 
-export const apiKeyPlugin = new Elysia({ name: "apiKey" })
-  .derive(async ({ request, set }) => {
-    const key = extractKey(request.headers);
-    if (!key) {
-      set.status = 401;
-      return { apiKey: undefined, apiKeyError: { error: "API key required" } };
-    }
-
-    try {
-      const record = await prisma.apiKey.findFirst({
-        where: { key, revoked: false },
-      });
-      if (!record) {
+export const apiKeyPlugin = <T extends Elysia>(app: T) =>
+  app
+    .decorate({
+      apiKey: undefined as ApiKey | undefined,
+      apiKeyError: undefined as { error: string } | undefined,
+    })
+    .derive(async ({ request, set }) => {
+      const key = extractKey(request.headers);
+      if (!key) {
         set.status = 401;
-        return { apiKey: undefined, apiKeyError: { error: "Invalid API key" } };
+        return { apiKey: undefined, apiKeyError: { error: "API key required" } };
       }
-      return { apiKey: record as ApiKey, apiKeyError: undefined };
-    } catch (err) {
-      console.error("API key lookup failed", err);
-      set.status = 500;
-      return { apiKey: undefined, apiKeyError: { error: "Auth failed" } };
-    }
-  })
-  .onBeforeHandle(({ apiKeyError }) => {
-    if (apiKeyError) return apiKeyError;
-  });
+
+      try {
+        const record = await prisma.apiKey.findFirst({
+          where: { key, revoked: false },
+        });
+        if (!record) {
+          set.status = 401;
+          return { apiKey: undefined, apiKeyError: { error: "Invalid API key" } };
+        }
+        return { apiKey: record as ApiKey, apiKeyError: undefined };
+      } catch (err) {
+        console.error("API key lookup failed", err);
+        set.status = 500;
+        return { apiKey: undefined, apiKeyError: { error: "Auth failed" } };
+      }
+    })
+    .onBeforeHandle(({ apiKeyError }) => {
+      if (apiKeyError) return apiKeyError;
+    });

@@ -10,7 +10,7 @@ const createSchema = z.object({
   description: z.string().trim().max(255).optional(),
 });
 
-export const webhooksRoutes = new Elysia({ name: "webhooks" }).use(apiKeyPlugin);
+export const webhooksRoutes = apiKeyPlugin(new Elysia({ name: "webhooks" }));
 
 webhooksRoutes.get("/", async ({ apiKey, set }) => {
   if (!apiKey) {

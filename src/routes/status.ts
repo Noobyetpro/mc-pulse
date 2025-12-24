@@ -89,8 +89,7 @@ async function handleNotify({
   }
 }
 
-const notifyRoutes = new Elysia({ name: "notify" })
-  .use(apiKeyPlugin)
+const notifyRoutes = apiKeyPlugin(new Elysia({ name: "notify" }))
   .post("/notify", ({ query, apiKey, set }) =>
     handleNotify({ query, apiKey, set }),
   )
