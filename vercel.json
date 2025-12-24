@@ -2,7 +2,7 @@
   "bunVersion": "1.3.5",
   "functions": {
     "api/**/*.ts": {
-      "runtime": "bun@1.3.5"
+      "runtime": "vercel-bun@0.0.1-alpha.5"
     }
   },
   "routes": [
