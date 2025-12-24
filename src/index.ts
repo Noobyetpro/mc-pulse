@@ -20,6 +20,12 @@ app.group("/api", (app) =>
     .group("/webhooks", (group) => group.use(webhooksRoutes)),
 );
 
+const isServerless = Boolean(
+  process.env.VERCEL ||
+  process.env.AWS_LAMBDA_FUNCTION_NAME ||
+  process.env.LAMBDA_TASK_ROOT,
+);
+
 async function start() {
   try {
     await ensureRedis();
@@ -40,7 +46,7 @@ async function start() {
   process.on("SIGTERM", shutdown);
 }
 
-if (import.meta.main) {
+if (import.meta.main && !isServerless) {
   start().catch((err) => {
     console.error("Failed to start server", err);
     process.exit(1);
